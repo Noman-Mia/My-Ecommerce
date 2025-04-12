@@ -1,0 +1,13 @@
+add this variable on 
+UPLOAD_PATH="C:/shared/uploads"
+
+on config/filesystems.php
+'shared'=>[
+            'driver' => 'local',
+            'root' => env('UPLOAD_PATH', storage_path('app/shared')),
+            'url' => env('APP_URL').'/shared',
+            'visibility' => 'public'
+        ],
+
+ON CMD 
+mklink /D "F:\OSTAD\Big project\Module-30\my-ecommerce\public\shared" "C:\shared\uploads"
