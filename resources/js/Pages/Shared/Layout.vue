@@ -1,12 +1,11 @@
 
 <script setup>
-
+import Sidebar from './Sidebar.vue'
 </script>
 
 <template >
-    <div>
-        <h1  class="text-blue-600">Hello </h1>
-    </div>
+  <Sidebar />
+  <slot />
 </template>
 
 <style >
