@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('SSLCommercez_credentials', function (Blueprint $table) {
+        Schema::create('SSLcommerz_credentials', function (Blueprint $table) {
             $table->id();
             $table->string('store_id')->nullable();
             $table->string('store_password')->nullable();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('SSLCommercez_credentials');
+        Schema::dropIfExists('SSLcommerz_credentials');
     }
 };

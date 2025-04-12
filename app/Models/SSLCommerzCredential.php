@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SSLCommercezCredential extends Model
+class SSLCommerzCredential extends Model
 {
     protected $table = "SSLcommerz_credentials";
 

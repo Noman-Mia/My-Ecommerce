@@ -40,4 +40,3 @@ class CustomerProfile extends Model
         return $this->hasMany(Invoice::class, 'customer_id', 'id');
     }
 }
-
