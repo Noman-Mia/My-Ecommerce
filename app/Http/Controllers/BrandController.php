@@ -2,63 +2,107 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Brand;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 class BrandController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return inertia::render('Brands/BrandList');
+        $brands = Brand::all();
+        return Inertia::render('Brands/BrandList', [
+            'brands' => $brands,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return Inertia::render('Brands/AddBrand');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $imageLocation = null;
+
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('brands', 'public'); // ✅ store inside 'brands' folder
+                $imageLocation = Storage::url($path); // ✅ get correct url (ex: /storage/brands/abc.jpg)
+            }
+
+            Brand::create([
+                'name' => $request->name,
+                'image' => $imageLocation,
+            ]);
+
+            return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', $th->getMessage());
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        //
+        $brand = Brand::findOrFail($id);
+        return Inertia::render('Brands/EditBrand', [
+            'brand' => $brand,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $brand = Brand::findOrFail($id);
+
+            $imageLocation = $brand->image;
+
+            if ($request->hasFile('image')) {
+                // Delete old image first if exists
+                if ($brand->image) {
+                    $oldPath = str_replace('/storage/', '', $brand->image);
+                    Storage::disk('public')->delete($oldPath);
+                }
+
+                // Store new image
+                $path = $request->file('image')->store('brands', 'public');
+                $imageLocation = Storage::url($path);
+            }
+
+            $brand->update([
+                'name' => $request->name,
+                'image' => $imageLocation,
+            ]);
+
+            return redirect()->route('brands.index')->with('success', 'Brand updated successfully.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', $th->getMessage());
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
+        $brand = Brand::findOrFail($id);
+
+        // Delete image
+        if ($brand->image) {
+            $path = str_replace('/storage/', '', $brand->image);
+            Storage::disk('public')->delete($path);
+        }
+
+        $brand->delete();
+
+        return redirect()->route('brands.index')->with('success', 'Brand deleted successfully.');
     }
 }

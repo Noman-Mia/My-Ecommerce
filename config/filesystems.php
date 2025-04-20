@@ -37,20 +37,14 @@ return [
             'throw' => false,
             'report' => false,
         ],
-        'shared'=>[
-            'driver' => 'local',
-            'root' => env('UPLOAD_PATH', storage_path('app/shared')),
-            'url' => env('APP_URL').'/shared',
-            'visibility' => 'public'
-        ],
 
-        'public' => [
+
+
+        'shared' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
-            'throw' => false,
-            'report' => false,
         ],
 
         's3' => [
