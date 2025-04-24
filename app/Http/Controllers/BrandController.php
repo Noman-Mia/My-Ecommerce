@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Storage;
 
 class BrandController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
         $brands = Brand::all();
@@ -17,11 +20,17 @@ class BrandController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         return Inertia::render('Brands/AddBrand');
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         try {
@@ -30,11 +39,12 @@ class BrandController extends Controller
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            $imageLocation = null;
-
+            $imageLocation = '';
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('brands', 'public'); // ✅ store inside 'brands' folder
-                $imageLocation = Storage::url($path); // ✅ get correct url (ex: /storage/brands/abc.jpg)
+                $image = $request->file('image');
+                $imageName = time() . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('images', $imageName, 'shared');
+                $imageLocation = Storage::disk('shared')->url($imagePath);
             }
 
             Brand::create([
@@ -42,12 +52,23 @@ class BrandController extends Controller
                 'image' => $imageLocation,
             ]);
 
-            return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
+            return redirect()->route('brands.index')->with('success', 'Brand created successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
 
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(string $id)
     {
         $brand = Brand::findOrFail($id);
@@ -56,6 +77,9 @@ class BrandController extends Controller
         ]);
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, string $id)
     {
         try {
@@ -69,15 +93,10 @@ class BrandController extends Controller
             $imageLocation = $brand->image;
 
             if ($request->hasFile('image')) {
-                // Delete old image first if exists
-                if ($brand->image) {
-                    $oldPath = str_replace('/storage/', '', $brand->image);
-                    Storage::disk('public')->delete($oldPath);
-                }
-
-                // Store new image
-                $path = $request->file('image')->store('brands', 'public');
-                $imageLocation = Storage::url($path);
+                $image = $request->file('image');
+                $imageName = time() . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('images', $imageName, 'shared');
+                $imageLocation = Storage::disk('shared')->url($imagePath);
             }
 
             $brand->update([
@@ -85,24 +104,26 @@ class BrandController extends Controller
                 'image' => $imageLocation,
             ]);
 
-            return redirect()->route('brands.index')->with('success', 'Brand updated successfully.');
+            return redirect()->route('brands.index')->with('success', 'Brand updated successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(string $id)
     {
         $brand = Brand::findOrFail($id);
-
-        // Delete image
         if ($brand->image) {
-            $path = str_replace('/storage/', '', $brand->image);
-            Storage::disk('public')->delete($path);
+            $imagePath = str_replace(Storage::disk('shared')->url(''), '', $brand->image);
+
+            if (Storage::disk('shared')->exists($imagePath)) {
+                Storage::disk('shared')->delete($imagePath);
+            }
         }
 
         $brand->delete();
-
-        return redirect()->route('brands.index')->with('success', 'Brand deleted successfully.');
     }
 }
